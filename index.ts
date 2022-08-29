@@ -65,7 +65,7 @@ app.put("/ban/:userId", async (req, res) => {
 		return
 	}
 
-	const alreadyBanned = await bans.findOne({userId: userId})
+	const alreadyBanned = await bans.findOne({userId: userId, unbanDate: {$gt: new Date()}})
 	if (alreadyBanned) {
 		res.status(400).send("User is already banned")
 		return
