@@ -55,6 +55,7 @@ app.get("/ban/:userId", async (req, res) => {
 			banned: false
 		}
 	}
+
 	res.send(response)
 })
 
