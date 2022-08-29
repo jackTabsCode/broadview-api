@@ -8,7 +8,7 @@ import logger from "morgan"
 dotenv.config()
 
 const client = await MongoClient.connect("mongodb://localhost:27017")
-const db = client.db("broadview-1")
+const db = client.db("broadview")
 const bans = db.collection("bans")
 
 const app = express()
