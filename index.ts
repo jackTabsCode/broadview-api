@@ -71,18 +71,20 @@ app.put("/ban/:userId", async (req, res) => {
 		return
 	}
 
-	console.log(req.body)
-
 	const reason = req.body.reason
-	const unbanDate = new Date(req.body.unbanDateUnix * 1000)
-	const moderatorId = parseInt(req.body.moderatorId)
+	const unbanDate = Date.parse(req.body.unbanDate)
+	const moderatorId = req.body.moderatorId
 
-	if (!reason || !unbanDate || !moderatorId) {
-		res.status(400).send("Missing required fields")
+	if (typeof reason !== "string") {
+		res.status(400).send("Reason is missing or is not a string")
+	} else if (isNaN(unbanDate)) {
+		res.status(400).send("Unban date is missing or is not a valid date")
+	} else if (typeof moderatorId !== "number") {
+		res.status(400).send("Moderator ID is missing or is not a number")
 		return
 	}
 
-	await bans.insertOne({userId: userId, reason: reason, unbanDate: unbanDate, moderatorId: moderatorId})
+	await bans.insertOne({userId: userId, reason: reason, unbanDate: new Date(unbanDate), moderatorId: moderatorId})
 
 	res.status(200).send("User has been banned")
 })
