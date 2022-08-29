@@ -1,5 +1,5 @@
 .env
-broadview-cert.pem
-broadview-key.pem
+broadview.crt
+broadview.key
 *.js
 node_modules

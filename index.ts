@@ -97,6 +97,6 @@ app.delete("/ban/:userId", async (req, res) => {
 	res.status(200).send("User has been unbanned")
 })
 
-https.createServer({key: fs.readFileSync("broadview-key.pem"), cert: fs.readFileSync("broadview-cert.pem")}, app).listen(443, undefined, undefined, () => {
+https.createServer({key: fs.readFileSync("broadview.key"), cert: fs.readFileSync("broadview.crt")}, app).listen(443, undefined, undefined, () => {
 	console.log("Listening on port 443")
 })
