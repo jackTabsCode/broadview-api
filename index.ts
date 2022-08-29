@@ -71,6 +71,8 @@ app.put("/ban/:userId", async (req, res) => {
 		return
 	}
 
+	console.log(req.body)
+
 	const reason = req.body.reason
 	const unbanDate = new Date(req.body.unbanDateUnix * 1000)
 	const moderatorId = parseInt(req.body.moderatorId)
