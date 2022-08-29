@@ -77,8 +77,10 @@ app.put("/ban/:userId", async (req, res) => {
 
 	if (typeof reason !== "string") {
 		res.status(400).send("Reason is missing or is not a string")
+		return
 	} else if (isNaN(unbanDate)) {
 		res.status(400).send("Unban date is missing or is not a valid date")
+		return
 	} else if (typeof moderatorId !== "number") {
 		res.status(400).send("Moderator ID is missing or is not a number")
 		return
