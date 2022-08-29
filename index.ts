@@ -40,7 +40,9 @@ app.get("/ban/:userId", async (req, res) => {
 		return
 	}
 
-	const ban = await bans.findOne({userId: userId, unbanDate: {$gt: new Date()}})
+	const ban = await bans.findOne({
+		$and: [{userId: userId}, {$or: [{unbanDate: {$exists: false}}, {unbanDate: {$gt: new Date()}}]}]
+	})
 
 	let response: any
 	if (ban) {
@@ -66,20 +68,22 @@ app.put("/ban/:userId", async (req, res) => {
 		return
 	}
 
-	const alreadyBanned = await bans.findOne({userId: userId, unbanDate: {$gt: new Date()}})
+	const alreadyBanned = await bans.findOne({
+		$and: [{userId: userId}, {$or: [{unbanDate: {$exists: false}}, {unbanDate: {$gt: new Date()}}]}]
+	})
 	if (alreadyBanned) {
 		res.status(400).send("User is already banned")
 		return
 	}
 
 	const reason = req.body.reason
-	const unbanDate = Date.parse(req.body.unbanDate)
+	let unbanDate = req.body.unbanDate !== undefined ? Date.parse(req.body.unbanDate) : undefined
 	const moderatorId = req.body.moderatorId
 
 	if (typeof reason !== "string") {
 		res.status(400).send("Reason is missing or is not a string")
 		return
-	} else if (isNaN(unbanDate)) {
+	} else if (unbanDate !== undefined && isNaN(unbanDate)) {
 		res.status(400).send("Unban date is missing or is not a valid date")
 		return
 	} else if (typeof moderatorId !== "number") {
@@ -87,7 +91,7 @@ app.put("/ban/:userId", async (req, res) => {
 		return
 	}
 
-	await bans.insertOne({userId: userId, reason: reason, unbanDate: new Date(unbanDate), moderatorId: moderatorId})
+	await bans.insertOne({...{userId: userId, reason: reason, moderatorId: moderatorId}, ...(unbanDate !== undefined ? {unbanDate: new Date(unbanDate)} : {})})
 
 	res.status(200).send("User has been banned")
 })
