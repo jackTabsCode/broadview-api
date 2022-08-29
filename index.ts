@@ -8,7 +8,7 @@ import logger from "morgan"
 dotenv.config()
 
 const client = await MongoClient.connect("mongodb://localhost:27017")
-const db = client.db("broadview-dev")
+const db = client.db("broadview-1")
 const bans = db.collection("bans")
 
 const app = express()
@@ -41,7 +41,7 @@ app.get("/ban/:userId", async (req, res) => {
 	}
 
 	const ban = await bans.findOne({
-		$and: [{userId: userId}, {$or: [{unbanDate: {$exists: false}}, {unbanDate: {$gt: new Date()}}]}]
+		$and: [{userId: userId}, {$or: [{expires: {$exists: false}}, {expires: {$gt: new Date()}}]}]
 	})
 
 	let response: any
@@ -49,7 +49,7 @@ app.get("/ban/:userId", async (req, res) => {
 		response = {
 			banned: true,
 			reason: ban.reason,
-			unbanDate: ban.unbanDate,
+			expires: ban.expires,
 			moderatorId: ban.moderatorId
 		}
 	} else {
@@ -69,7 +69,7 @@ app.put("/ban/:userId", async (req, res) => {
 	}
 
 	const alreadyBanned = await bans.findOne({
-		$and: [{userId: userId}, {$or: [{unbanDate: {$exists: false}}, {unbanDate: {$gt: new Date()}}]}]
+		$and: [{userId: userId}, {$or: [{expires: {$exists: false}}, {expires: {$gt: new Date()}}]}]
 	})
 	if (alreadyBanned) {
 		res.status(400).send("User is already banned")
@@ -77,13 +77,13 @@ app.put("/ban/:userId", async (req, res) => {
 	}
 
 	const reason = req.body.reason
-	let unbanDate = req.body.unbanDate !== undefined ? Date.parse(req.body.unbanDate) : undefined
+	let expires = req.body.expires !== undefined ? Date.parse(req.body.expires) : undefined
 	const moderatorId = req.body.moderatorId
 
 	if (typeof reason !== "string") {
 		res.status(400).send("Reason is missing or is not a string")
 		return
-	} else if (unbanDate !== undefined && isNaN(unbanDate)) {
+	} else if (expires !== undefined && isNaN(expires)) {
 		res.status(400).send("Unban date is missing or is not a valid date")
 		return
 	} else if (typeof moderatorId !== "number") {
@@ -91,7 +91,7 @@ app.put("/ban/:userId", async (req, res) => {
 		return
 	}
 
-	await bans.insertOne({...{userId: userId, reason: reason, moderatorId: moderatorId}, ...(unbanDate !== undefined ? {unbanDate: new Date(unbanDate)} : {})})
+	await bans.insertOne({...{userId: userId, reason: reason, moderatorId: moderatorId}, ...(expires !== undefined ? {expires: new Date(expires)} : {})})
 
 	res.status(200).send("User has been banned")
 })
