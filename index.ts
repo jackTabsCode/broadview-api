@@ -59,11 +59,11 @@ app.get("/ban/:userId", async (req, res) => {
 		}
 	}
 
-	res.send(response)
+	res.status(200).send(response)
 })
 
 app.get("bans", async (req, res) => {
-	res.send(await db.collection("bans").find().toArray())
+	res.status(200).send(await db.collection("bans").find().toArray())
 })
 
 app.put("/ban/:userId", async (req, res) => {
