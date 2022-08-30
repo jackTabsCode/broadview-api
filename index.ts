@@ -62,6 +62,10 @@ app.get("/ban/:userId", async (req, res) => {
 	res.send(response)
 })
 
+app.get("bans", async (req, res) => {
+	res.send(await db.collection("bans").find().toArray())
+})
+
 app.put("/ban/:userId", async (req, res) => {
 	const userId = parseInt(req.params.userId)
 	if (!userId) {
