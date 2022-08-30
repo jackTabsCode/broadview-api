@@ -50,7 +50,8 @@ app.get("/ban/:userId", async (req, res) => {
 			banned: true,
 			reason: ban.reason,
 			expires: ban.expires,
-			moderatorId: ban.moderatorId
+			moderatorId: ban.moderatorId,
+			timestamp: ban.timestamp
 		}
 	} else {
 		response = {
@@ -91,7 +92,7 @@ app.put("/ban/:userId", async (req, res) => {
 		return
 	}
 
-	await bans.insertOne({...{userId: userId, reason: reason, moderatorId: moderatorId}, ...(expires !== undefined ? {expires: new Date(expires)} : {})})
+	await bans.insertOne({...{userId: userId, reason: reason, moderatorId: moderatorId, timestamp: new Date()}, ...(expires !== undefined ? {expires: new Date(expires)} : {})})
 
 	res.status(200).send("User has been banned")
 })
