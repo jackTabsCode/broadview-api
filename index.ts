@@ -62,7 +62,7 @@ app.get("/ban/:userId", async (req, res) => {
 	res.status(200).send(response)
 })
 
-app.get("bans", async (req, res) => {
+app.get("/bans", async (req, res) => {
 	res.status(200).send(await db.collection("bans").find().toArray())
 })
 
