@@ -7,11 +7,10 @@ import logger from "morgan"
 
 dotenv.config()
 
-const client = await MongoClient.connect("mongodb://localhost:27017")
+const client = await MongoClient.connect("mongodb://127.0.0.1:27017")
 const db = client.db("broadview")
 
 const bans = db.collection("bans")
-const groupBans = db.collection("groupBans")
 
 const app = express()
 app.use(
@@ -62,86 +61,6 @@ app.get("/ban/:userId", async (req, res) => {
 	}
 
 	res.status(200).send(response)
-})
-
-app.get("/groupBans", async (req, res) => {
-	res.status(200).send(await groupBans.find().toArray())
-})
-
-app.get("/groupBan", async (req, res) => {
-	const groupIds = req.body.groupIds
-
-	if (!groupIds || !Array.isArray(groupIds)) {
-		res.status(400).send("Group IDs are missing or not an array")
-		return
-	}
-
-	if (groupIds.some(isNaN)) {
-		res.status(400).send("One or more group IDs are not numbers")
-		return
-	}
-
-	const bannedGroups = await groupBans.find({groupId: {$in: groupIds}}).toArray()
-	const firstBannedGroup = bannedGroups[0]
-
-	let response: any
-	if (firstBannedGroup) {
-		response = {
-			banned: true,
-			groupId: firstBannedGroup.groupId,
-			moderatorId: firstBannedGroup.moderatorId,
-			timestamp: firstBannedGroup.timestamp
-		}
-	} else {
-		response = {
-			banned: false
-		}
-	}
-
-	res.status(200).send(response)
-})
-
-app.put("/groupBan", async (req, res) => {
-	const groupId = req.body.groupId
-	const moderatorId = req.body.moderatorId
-
-	if (typeof groupId !== "number") {
-		res.status(400).send("Group ID is missing or is not a number")
-		return
-	} else if (typeof moderatorId !== "number") {
-		res.status(400).send("Moderator ID is missing or is not a number")
-		return
-	}
-
-	const alreadyBanned = await groupBans.findOne({groupId})
-	if (alreadyBanned) {
-		res.status(400).send("Group is already banned")
-		return
-	}
-
-	await groupBans.insertOne({
-		groupId,
-		moderatorId,
-		timestamp: new Date()
-	})
-
-	res.status(200).send("Group has been banned")
-})
-
-app.delete("/groupBan/:groupId", async (req, res) => {
-	const groupId = parseInt(req.params.groupId)
-	if (!groupId) {
-		res.status(400).send("Group ID is NaN")
-		return
-	}
-
-	const attempt = await groupBans.findOneAndDelete({groupId})
-	if (!attempt.value) {
-		res.status(400).send("Group is not banned")
-		return
-	}
-
-	res.status(200).send("Group has been unbanned")
 })
 
 app.get("/bans", async (req, res) => {
