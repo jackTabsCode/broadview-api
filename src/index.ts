@@ -109,13 +109,15 @@ app.delete("/ban/:userId", async (req, res) => {
 		return
 	}
 
-	const attempt = await bans.findOneAndDelete({userId})
-	if (!attempt.value) {
+	const attempt = await bans.deleteMany({
+		$or: [{expires: {$gt: new Date()}}, {expires: {$exists: false}}]
+	})
+	if (attempt.deletedCount === 0) {
 		res.status(400).send("User is not banned")
 		return
 	}
 
-	res.status(200).send("User has been unbanned")
+	res.status(200).send(`User has been unbanned. ${attempt.deletedCount} bans were removed`)
 })
 
 https.createServer({key: fs.readFileSync("broadview.key"), cert: fs.readFileSync("broadview.crt")}, app).listen(443, undefined, undefined, () => {
