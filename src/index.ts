@@ -4,8 +4,24 @@ import fs from "fs"
 import https from "https"
 import {MongoClient} from "mongodb"
 import logger from "morgan"
+import noblox from "noblox.js"
 
 dotenv.config()
+
+const robloxCookie = process.env.ROBLOX_COOKIE
+if (!robloxCookie) {
+	console.error("ROBLOX_COOKIE is not defined")
+	process.exit(1)
+}
+
+const apiKey = process.env.API_KEY
+if (!apiKey) {
+	console.error("API_KEY is not defined")
+	process.exit(1)
+}
+
+const user = await noblox.setCookie(robloxCookie)
+console.log(`Logged in as ${user.UserName}`)
 
 const client = await MongoClient.connect("mongodb://127.0.0.1:27017")
 const db = client.db("broadview")
@@ -23,7 +39,7 @@ app.use(
 	},
 	(req, res, next) => {
 		const apiKey = req.get("API-Key")
-		if (!apiKey || apiKey !== process.env.API_KEY) {
+		if (!apiKey || apiKey !== apiKey) {
 			res.status(401).send("Unauthorized")
 			return
 		} else next()
@@ -118,6 +134,29 @@ app.delete("/ban/:userId", async (req, res) => {
 	}
 
 	res.status(200).send(`User has been unbanned. ${attempt.deletedCount} bans were removed`)
+})
+
+app.post("/resident/:userId", async (req, res) => {
+	const userId = parseInt(req.params.userId)
+	if (!userId) {
+		res.status(400).send("User ID is NaN")
+		return
+	}
+
+	const rankName = await noblox.getRankNameInGroup(3016035, userId)
+	if (rankName === "Resident") {
+		res.status(400).send("${userId} is already a Resident")
+	}
+
+	noblox
+		.setRank(3016035, userId, "Resident")
+		.then(role => {
+			res.status(200).send(`${userId} has been set to ${role.name}`)
+		})
+		.catch(err => {
+			console.error(err)
+			res.status(500).send(`An error occurred while setting ${userId} to Resident`)
+		})
 })
 
 https.createServer({key: fs.readFileSync("broadview.key"), cert: fs.readFileSync("broadview.crt")}, app).listen(443, undefined, undefined, () => {
