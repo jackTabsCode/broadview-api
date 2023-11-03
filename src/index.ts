@@ -113,7 +113,7 @@ app.put("/ban/:userId", async (req, res) => {
 		return
 	}
 
-	await bans.insertOne({...{userId, reason, moderatorId, timestamp: new Date()}, ...(expires !== undefined ? {expires: new Date(expires)} : {})})
+	await bans.insertOne({userId, reason, moderatorId, timestamp: new Date(), expires: expires ? new Date(expires) : undefined})
 
 	res.status(200).send("User has been banned")
 })
@@ -126,7 +126,7 @@ app.delete("/ban/:userId", async (req, res) => {
 	}
 
 	const attempt = await bans.deleteMany({
-		$or: [{expires: {$gt: new Date()}}, {expires: {$exists: false}}]
+		$and: [{userId: userId}, {$or: [{expires: {$exists: false}}, {expires: {$gt: new Date()}}]}]
 	})
 	if (attempt.deletedCount === 0) {
 		res.status(400).send("User is not banned")
