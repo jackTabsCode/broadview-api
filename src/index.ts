@@ -146,6 +146,7 @@ app.post("/resident/:userId", async (req, res) => {
 	const rankName = await noblox.getRankNameInGroup(3016035, userId)
 	if (rankName === "Resident") {
 		res.status(400).send(`${userId} is already a Resident`)
+		return
 	}
 
 	noblox
